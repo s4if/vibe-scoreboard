@@ -17,5 +17,9 @@
   "description": "Live Scoreboard Application with Bun.js, Vue.js, and WebSocket",
   "version": "1.0.0",
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@vue/compiler-sfc": "^3.5.22",
+    "vue": "^3.5.22"
+  }
 }

@@ -1,11 +1,11 @@
 {
   "compilerOptions": {
     // Environment setup & latest features
-    "lib": ["ESNext"],
+    "lib": ["ESNext", "DOM"],
     "target": "ESNext",
     "module": "Preserve",
     "moduleDetection": "force",
-    "jsx": "react-jsx",
+    "jsx": "preserve",
     "allowJs": true,
 
     // Bundler mode
@@ -24,6 +24,16 @@
     // Some stricter flags (disabled by default)
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "noPropertyAccessFromIndexSignature": false
+    "noPropertyAccessFromIndexSignature": false,
+
+    // Vue specific options
+    "types": ["vue"],
+    "isolatedModules": true,
+    "esModuleInterop": true
+  },
+  "vueCompilerOptions": {
+    "target": 3.5,
+    "lib": ["ESNext", "DOM"],
+    "strictTemplates": true
   }
 }
