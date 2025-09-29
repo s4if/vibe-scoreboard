@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Scoreboard</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div id="app">
+        <div class="header">
+            <h1>Live Scoreboard</h1>
+            <div class="status">
+                <span :class="['status-indicator', isConnected ? 'connected' : 'disconnected']"></span>
+                {{ isConnected ? 'Live' : 'Disconnected' }}
+            </div>
+        </div>
+        
+        <div class="scoreboard-container">
+            <div class="scoreboard-grid">
+                <competition-table
+                    v-for="competition in competitions"
+                    :key="competition.id"
+                    :competition="competition"
+                ></competition-table>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Last updated: {{ lastUpdated }}</p>
+            <a href="/admin.html" class="admin-link">Admin Login</a>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+</html>

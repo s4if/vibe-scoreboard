@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Live Scoreboard</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div id="admin-app">
+        <!-- Login Form -->
+        <div v-if="!isLoggedIn" class="login-container">
+            <div class="login-form">
+                <h2>Admin Login</h2>
+                <form @submit.prevent="login">
+                    <div class="form-group">
+                        <label for="username">Username:</label>
+                        <input 
+                            type="text" 
+                            id="username" 
+                            v-model="loginForm.username" 
+                            required
+                            placeholder="Enter username"
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password:</label>
+                        <input 
+                            type="password" 
+                            id="password" 
+                            v-model="loginForm.password" 
+                            required
+                            placeholder="Enter password"
+                        >
+                    </div>
+                    <button type="submit" class="btn btn-primary" :disabled="isLoading">
+                        {{ isLoading ? 'Logging in...' : 'Login' }}
+                    </button>
+                </form>
+                <div v-if="loginError" class="error-message">
+                    {{ loginError }}
+                </div>
+                <div class="login-info">
+                    <p><strong>Default credentials:</strong></p>
+                    <p>Username: admin</p>
+                    <p>Password: admin123</p>
+                </div>
+                <a href="/" class="back-link">← Back to Scoreboard</a>
+            </div>
+        </div>
+
+        <!-- Admin Panel -->
+        <div v-else class="admin-container">
+            <div class="admin-header">
+                <h1>Admin Panel</h1>
+                <div class="admin-actions">
+                    <button @click="logout" class="btn btn-secondary">Logout</button>
+                    <a href="/" class="btn btn-outline">View Scoreboard</a>
+                </div>
+            </div>
+
+            <div class="admin-content">
+                <div class="competitions-grid">
+                    <div 
+                        v-for="competition in competitions" 
+                        :key="competition.id" 
+                        class="admin-competition-card"
+                    >
+                        <div class="card-header">
+                            <h3>{{ competition.name }}</h3>
+                            <span class="competition-id">#{{ competition.id }}</span>
+                        </div>
+                        
+                        <div class="card-content">
+                            <div class="players-section">
+                                <div class="players-header">
+                                    <h4>Players</h4>
+                                    <button 
+                                        @click="showAddPlayer(competition.id)" 
+                                        class="btn btn-small btn-primary"
+                                    >
+                                        + Add Player
+                                    </button>
+                                </div>
+                                
+                                <div v-if="getPlayersForCompetition(competition.id).length > 0" class="players-list">
+                                    <div 
+                                        v-for="player in getPlayersForCompetition(competition.id)" 
+                                        :key="player.id" 
+                                        class="player-row"
+                                    >
+                                        <div class="player-info">
+                                            <input 
+                                                type="text" 
+                                                v-model="player.name" 
+                                                placeholder="Player name"
+                                                class="player-name-input"
+                                            >
+                                            <input 
+                                                type="number" 
+                                                v-model.number="player.score" 
+                                                placeholder="Score"
+                                                min="0"
+                                                class="player-score-input"
+                                            >
+                                        </div>
+                                        <button 
+                                            @click="removePlayer(player.id)" 
+                                            class="btn btn-small btn-danger"
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
+                                </div>
+                                <div v-else class="no-players">
+                                    <p>No players in this competition</p>
+                                </div>
+                            </div>
+                            
+                            <div class="last-update">
+                                <small>Last updated: {{ formatTime(getLatestUpdate(competition.id)) }}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-actions-bottom">
+                    <button 
+                        @click="saveChanges" 
+                        class="btn btn-primary btn-large" 
+                        :disabled="isSaving"
+                    >
+                        {{ isSaving ? 'Saving...' : 'Save All Changes' }}
+                    </button>
+                    
+                    <button 
+                        @click="resetChanges" 
+                        class="btn btn-secondary" 
+                        :disabled="isSaving"
+                    >
+                        Reset Changes
+                    </button>
+                </div>
+
+                <div v-if="saveMessage" :class="['save-message', saveSuccess ? 'success' : 'error']">
+                    {{ saveMessage }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Player Modal -->
+        <div v-if="showAddPlayerModal" class="modal-overlay" @click="closeAddPlayerModal">
+            <div class="modal-content" @click.stop>
+                <div class="modal-header">
+                    <h3>Add New Player</h3>
+                    <button @click="closeAddPlayerModal" class="modal-close">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="new-player-name">Player Name:</label>
+                        <input 
+                            id="new-player-name"
+                            type="text" 
+                            v-model="newPlayer.name" 
+                            placeholder="Enter player name"
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label for="new-player-score">Initial Score:</label>
+                        <input 
+                            id="new-player-score"
+                            type="number" 
+                            v-model.number="newPlayer.score" 
+                            placeholder="Enter initial score"
+                            min="0"
+                            value="0"
+                        >
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button @click="closeAddPlayerModal" class="btn btn-secondary">Cancel</button>
+                    <button @click="addPlayer" class="btn btn-primary">Add Player</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="/js/admin.js"></script>
+</body>
+</html>
