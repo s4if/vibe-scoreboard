@@ -1,3 +1,5 @@
+/* Scoreboard Specific Styles */
+
 /* Global Styles */
 * {
     margin: 0;
@@ -25,11 +27,11 @@ body {
     justify-content: center;
     align-items: center;
     gap: 15px;
-    height: 50px; /* Reduced height */
+    height: 50px;
 }
 
 .header h1 {
-    font-size: 1.5em; /* Smaller font */
+    font-size: 1.5em;
     font-weight: 700;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
     margin: 0;
@@ -39,12 +41,12 @@ body {
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 0.8em; /* Smaller font */
+    font-size: 0.8em;
     font-weight: 500;
 }
 
 .status-indicator {
-    width: 8px; /* Smaller indicator */
+    width: 8px;
     height: 8px;
     border-radius: 50%;
     background: #ff4757;
@@ -77,14 +79,12 @@ body {
     }
 }
 
-/* Scoreboard Container - UPDATED FOR WIDER TABLES */
+/* Scoreboard Container */
 .scoreboard-container {
-    padding: 10px; /* Reduced padding */
+    padding: 10px;
     max-width: 1366px;
     margin: 0 auto;
-    height: calc(
-        100vh - 90px
-    ); /* Reduced height accounting for smaller header/footer */
+    height: calc(100vh - 90px);
     overflow: hidden;
 }
 
@@ -92,19 +92,19 @@ body {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(2, 1fr);
-    gap: 10px; /* Reduced gap */
+    gap: 10px;
     height: 100%;
     overflow: hidden;
-    padding: 5px; /* Reduced padding */
+    padding: 5px;
 }
 
-/* Competition Table Styles - WIDER AND MORE COMPACT */
+/* Competition Table Styles */
 .competition-table {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 8px; /* Slightly smaller radius */
-    padding: 10px; /* Reduced padding */
+    border-radius: 8px;
+    padding: 10px;
     color: white;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Smaller shadow */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.2);
     transition:
@@ -113,61 +113,96 @@ body {
     position: relative;
     overflow: hidden;
     height: fit-content;
-    min-height: 180px; /* Reduced minimum height */
+    min-height: 180px;
+}
+
+.competition-table::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        45deg,
+        transparent 30%,
+        rgba(255, 255, 255, 0.1) 50%,
+        transparent 70%
+    );
+    transform: translateX(-100%);
+    transition: transform 0.6s ease;
+}
+
+.competition-table:hover::before {
+    transform: translateX(100%);
+}
+
+.competition-table:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
 }
 
 .table-header {
     text-align: center;
-    margin-bottom: 8px; /* Reduced margin */
+    margin-bottom: 8px;
     position: relative;
 }
 
 .table-header h3 {
     margin: 0;
-    font-size: 1.1em; /* Smaller font */
+    font-size: 1.1em;
     font-weight: 700;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
     position: relative;
     z-index: 1;
-    line-height: 1.1; /* Tighter line height */
+    line-height: 1.1;
 }
 
 .table-content {
     display: flex;
     flex-direction: column;
-    gap: 6px; /* Reduced gap */
+    gap: 6px;
     position: relative;
     z-index: 1;
 }
 
-/* COMPACT PLAYER ROWS - MAJOR OPTIMIZATIONS */
+.leaderboard {
+    flex: 1;
+}
+
+.players-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
 .player-row {
     display: flex;
     align-items: center;
-    padding: 2px 4px; /* Reduced padding */
-    border-radius: 4px; /* Smaller radius */
+    padding: 2px 4px;
+    border-radius: 4px;
     background: rgba(255, 255, 255, 0.1);
     margin-bottom: 1px;
     transition: all 0.2s ease;
-    min-height: 24px; /* Fixed minimum height */
+    min-height: 24px;
 }
 
 .player-row:hover {
     background: rgba(255, 255, 255, 0.2);
-    transform: translateX(2px); /* Smaller transform */
+    transform: translateX(2px);
 }
 
 .rank {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 20px; /* Reduced width */
-    margin-right: 6px; /* Reduced margin */
+    min-width: 20px;
+    margin-right: 6px;
 }
 
 .rank-number {
     font-weight: 800;
-    font-size: 0.9em; /* Smaller font */
+    font-size: 0.9em;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
 }
 
@@ -178,10 +213,10 @@ body {
 }
 
 .player-name .value {
-    font-size: 0.85em; /* Smaller font */
+    font-size: 0.85em;
     font-weight: 600;
     word-break: break-word;
-    line-height: 1; /* Tighter line height */
+    line-height: 1;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -191,29 +226,29 @@ body {
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    min-width: 32px; /* Reduced width */
+    min-width: 32px;
 }
 
 .score-value {
-    font-size: 1em; /* Smaller font */
+    font-size: 1em;
     font-weight: 800;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
 }
 
-/* Top 5 rank styling - adjusted for compactness */
+/* Top 5 rank styling */
 .rank-1 .rank-number {
     color: #ffd700;
-    font-size: 0.85em; /* Smaller font */
+    font-size: 0.85em;
 }
 
 .rank-2 .rank-number {
     color: #c0c0c0;
-    font-size: 0.8em; /* Smaller font */
+    font-size: 0.8em;
 }
 
 .rank-3 .rank-number {
     color: #cd7f32;
-    font-size: 0.8em; /* Smaller font */
+    font-size: 0.8em;
 }
 
 .rank-1 {
@@ -246,22 +281,22 @@ body {
 .last-update {
     text-align: center;
     opacity: 0.7;
-    font-size: 0.65em; /* Smaller font */
-    margin-top: 6px; /* Reduced margin */
+    font-size: 0.65em;
+    margin-top: 6px;
     font-style: italic;
 }
 
 .no-players {
     text-align: center;
-    padding: 15px 8px; /* Reduced padding */
+    padding: 15px 8px;
     opacity: 0.7;
     font-style: italic;
-    font-size: 0.75em; /* Smaller font */
+    font-size: 0.75em;
 }
 
 .more-players {
     text-align: center;
-    padding: 6px; /* Reduced padding */
+    padding: 6px;
     opacity: 0.8;
     font-style: italic;
     background: rgba(255, 255, 255, 0.05);
@@ -271,42 +306,46 @@ body {
 }
 
 .more-players small {
-    font-size: 0.7em; /* Smaller font */
+    font-size: 0.7em;
     color: rgba(255, 255, 255, 0.9);
 }
 
-/* Footer - MORE COMPACT */
+/* Footer */
 .footer {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     border-top: 1px solid rgba(255, 255, 255, 0.2);
-    padding: 8px; /* Reduced padding */
+    padding: 8px;
     text-align: center;
     color: white;
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 15px; /* Reduced gap */
+    gap: 15px;
     flex-wrap: wrap;
-    height: 40px; /* Reduced height */
-    font-size: 0.75em; /* Smaller font */
+    height: 40px;
+    font-size: 0.75em;
 }
 
 .admin-link {
     color: #ffd700;
     text-decoration: none;
     font-weight: 600;
-    padding: 3px 10px; /* Reduced padding */
+    padding: 3px 10px;
     border: 1px solid #ffd700;
     border-radius: 12px;
     transition: all 0.2s ease;
     background: rgba(255, 215, 0, 0.1);
-    font-size: 0.8em; /* Smaller font */
+    font-size: 0.8em;
 }
 
-/* Rest of your existing CSS remains the same, but add this responsive section: */
+.admin-link:hover {
+    background: rgba(255, 215, 0, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+}
 
-/* Optimized for 1366x768 and above */
+/* Responsive Design */
 @media (min-width: 1366px) {
     .scoreboard-container {
         padding: 15px;
@@ -337,7 +376,6 @@ body {
     }
 }
 
-/* For larger screens - utilize more space */
 @media (min-width: 1600px) {
     .scoreboard-container {
         max-width: 1600px;
@@ -352,12 +390,6 @@ body {
     }
 }
 
-/* Keep your existing responsive design for smaller screens */
-@media (max-width: 768px) {
-    /* Your existing mobile styles... */
-}
-
-/* Add this to ensure tables don't overflow on very small screens */
 @media (max-width: 1279px) {
     .scoreboard-grid {
         grid-template-columns: repeat(2, 1fr);
@@ -365,9 +397,112 @@ body {
     }
 }
 
+@media (max-width: 768px) {
+    .header {
+        height: 60px;
+        flex-direction: column;
+        padding: 15px 0;
+    }
+
+    .header h1 {
+        font-size: 1.3em;
+    }
+
+    .status {
+        font-size: 0.7em;
+    }
+
+    .scoreboard-container {
+        height: calc(100vh - 110px);
+        padding: 15px;
+    }
+
+    .competition-table {
+        padding: 15px;
+        min-height: 200px;
+    }
+
+    .table-header h3 {
+        font-size: 1.2em;
+    }
+
+    .player-row {
+        padding: 6px 8px;
+        min-height: 28px;
+    }
+
+    .rank {
+        min-width: 25px;
+        margin-right: 10px;
+    }
+
+    .rank-number {
+        font-size: 1em;
+    }
+
+    .player-name .value {
+        font-size: 0.9em;
+    }
+
+    .score-value {
+        font-size: 1.1em;
+    }
+
+    .rank-1 .rank-number {
+        font-size: 0.95em;
+    }
+
+    .rank-2 .rank-number {
+        font-size: 0.9em;
+    }
+
+    .rank-3 .rank-number {
+        font-size: 0.85em;
+    }
+
+    .footer {
+        height: 50px;
+        font-size: 0.7em;
+        flex-direction: column;
+        gap: 8px;
+    }
+}
+
 @media (max-width: 480px) {
+    .header h1 {
+        font-size: 1.1em;
+    }
+
     .scoreboard-grid {
         grid-template-columns: 1fr;
         grid-template-rows: repeat(6, 1fr);
+        gap: 8px;
+    }
+
+    .competition-table {
+        padding: 12px;
+        min-height: 180px;
+    }
+
+    .table-header h3 {
+        font-size: 1.1em;
+    }
+
+    .player-row {
+        padding: 4px 6px;
+        min-height: 24px;
+    }
+
+    .player-name .value {
+        font-size: 0.85em;
+    }
+
+    .score-value {
+        font-size: 1em;
+    }
+
+    .footer {
+        font-size: 0.65em;
+        padding: 6px;
     }
 }

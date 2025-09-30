@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - Live Scoreboard</title>
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/admin.css">
 </head>
 <body>
     <div id="admin-app">
@@ -90,26 +90,23 @@
                                         class="player-row"
                                     >
                                         <div class="player-info">
-                                            <input 
-                                                type="text" 
-                                                v-model="player.name" 
-                                                placeholder="Player name"
-                                                class="player-name-input"
-                                            >
-                                            <input 
-                                                type="number" 
-                                                v-model.number="player.score" 
-                                                placeholder="Score"
-                                                min="0"
-                                                class="player-score-input"
-                                            >
+                                            <div class="player-name-display">{{ player.name }}</div>
+                                            <div class="player-score-display">Score: {{ player.score }}</div>
                                         </div>
-                                        <button 
-                                            @click="removePlayer(player.id)" 
-                                            class="btn btn-small btn-danger"
-                                        >
-                                            ×
-                                        </button>
+                                        <div class="player-actions">
+                                            <button 
+                                                @click="showEditPlayer(player)" 
+                                                class="btn btn-small btn-primary"
+                                            >
+                                                Edit
+                                            </button>
+                                            <button 
+                                                @click="removePlayer(player.id)" 
+                                                class="btn btn-small btn-danger"
+                                            >
+                                                ×
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                                 <div v-else class="no-players">
@@ -144,6 +141,41 @@
 
                 <div v-if="saveMessage" :class="['save-message', saveSuccess ? 'success' : 'error']">
                     {{ saveMessage }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Player Modal -->
+        <div v-if="showEditPlayerModal" class="modal-overlay" @click="closeEditPlayerModal">
+            <div class="modal-content" @click.stop>
+                <div class="modal-header">
+                    <h3>Edit Player</h3>
+                    <button @click="closeEditPlayerModal" class="modal-close">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="edit-player-name">Player Name:</label>
+                        <input 
+                            id="edit-player-name"
+                            type="text" 
+                            v-model="editingPlayer.name" 
+                            placeholder="Enter player name"
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-player-score">Score:</label>
+                        <input 
+                            id="edit-player-score"
+                            type="number" 
+                            v-model.number="editingPlayer.score" 
+                            placeholder="Enter score"
+                            min="0"
+                        >
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button @click="closeEditPlayerModal" class="btn btn-secondary">Cancel</button>
+                    <button @click="updatePlayer" class="btn btn-primary">Update Player</button>
                 </div>
             </div>
         </div>

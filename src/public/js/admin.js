@@ -17,10 +17,17 @@ createApp({
             allPlayers: {}, // Store all players for each competition
             originalPlayers: {}, // Store original players for reset
             showAddPlayerModal: false,
+            showEditPlayerModal: false,
             newPlayer: {
                 competition_id: null,
                 name: '',
                 score: 0
+            },
+            editingPlayer: {
+                id: null,
+                name: '',
+                score: 0,
+                competition_id: null
             }
         };
     },
@@ -62,6 +69,10 @@ createApp({
             this.originalPlayers = {};
             this.saveMessage = '';
             this.loginError = '';
+            this.showAddPlayerModal = false;
+            this.showEditPlayerModal = false;
+            this.newPlayer = { competition_id: null, name: '', score: 0 };
+            this.editingPlayer = { id: null, name: '', score: 0, competition_id: null };
             localStorage.removeItem('isAdminLoggedIn');
         },
         
@@ -146,6 +157,58 @@ createApp({
         closeAddPlayerModal() {
             this.showAddPlayerModal = false;
             this.newPlayer = { competition_id: null, name: '', score: 0 };
+        },
+        
+        showEditPlayer(player) {
+            this.editingPlayer = {
+                id: player.id,
+                name: player.name,
+                score: player.score,
+                competition_id: player.competition_id
+            };
+            this.showEditPlayerModal = true;
+        },
+        
+        closeEditPlayerModal() {
+            this.showEditPlayerModal = false;
+            this.editingPlayer = { id: null, name: '', score: 0, competition_id: null };
+        },
+        
+        async updatePlayer() {
+            if (!this.editingPlayer.name.trim()) {
+                alert('Please enter a player name');
+                return;
+            }
+            
+            try {
+                const credentials = btoa('admin:admin123');
+                const response = await fetch(`/api/players/${this.editingPlayer.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Basic ${credentials}`
+                    },
+                    body: JSON.stringify({
+                        name: this.editingPlayer.name,
+                        score: this.editingPlayer.score
+                    })
+                });
+                
+                if (response.ok) {
+                    await this.fetchPlayersForCompetition(this.editingPlayer.competition_id);
+                    this.closeEditPlayerModal();
+                    this.saveMessage = 'Player updated successfully!';
+                    this.saveSuccess = true;
+                    setTimeout(() => { this.saveMessage = ''; }, 3000);
+                } else {
+                    this.saveMessage = 'Failed to update player. Please try again.';
+                    this.saveSuccess = false;
+                }
+            } catch (error) {
+                console.error('Error updating player:', error);
+                this.saveMessage = 'Error updating player. Please try again.';
+                this.saveSuccess = false;
+            }
         },
         
         async addPlayer() {
