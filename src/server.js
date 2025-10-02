@@ -8,7 +8,7 @@ import { seedDatabase } from "../database/seeds/index.js";
 const db = new Database("livescore.db");
 
 // Drop existing tables and create new structure
-db.exec(`
+db.run(`
   DROP TABLE IF EXISTS players;
   DROP TABLE IF EXISTS competitions;
   DROP TABLE IF EXISTS competition_players;
