@@ -28,11 +28,18 @@ createApp({
                 name: '',
                 score: 0,
                 competition_id: null
-            }
+            },
+            ws: null,
+            reconnectAttempts: 0,
+            maxReconnectAttempts: 5
         };
     },
     mounted() {
         this.checkAuth();
+    },
+    
+    beforeUnmount() {
+        this.cleanupWebSocket();
     },
     methods: {
         async login() {
@@ -51,6 +58,7 @@ createApp({
                     this.isLoggedIn = true;
                     this.loginForm = { username: '', password: '' };
                     await this.fetchCompetitions();
+                    this.initWebSocket();
                 } else {
                     this.loginError = 'Invalid username or password';
                 }
@@ -63,6 +71,7 @@ createApp({
         },
         
         logout() {
+            this.cleanupWebSocket();
             this.isLoggedIn = false;
             this.competitions = [];
             this.allPlayers = {};
@@ -81,6 +90,66 @@ createApp({
             if (isAuthenticated === 'true') {
                 this.isLoggedIn = true;
                 this.fetchCompetitions();
+                this.initWebSocket();
+            }
+        },
+        
+        initWebSocket() {
+            try {
+                this.ws = new WebSocket('ws://localhost:3000/ws');
+                
+                this.ws.onopen = () => {
+                    console.log('Admin WebSocket connected');
+                    this.reconnectAttempts = 0;
+                };
+                
+                this.ws.onmessage = (event) => {
+                    const message = JSON.parse(event.data);
+                    console.log('Admin received message:', message);
+                    
+                    if (message.type === 'init' || message.type === 'update') {
+                        // Refresh competitions and players data
+                        this.competitions = message.data;
+                        
+                        // Fetch updated players for each competition
+                        for (const competition of this.competitions) {
+                            this.fetchPlayersForCompetition(competition.id);
+                        }
+                    }
+                };
+                
+                this.ws.onclose = () => {
+                    console.log('Admin WebSocket disconnected');
+                    this.attemptReconnect();
+                };
+                
+                this.ws.onerror = (error) => {
+                    console.error('Admin WebSocket error:', error);
+                };
+                
+            } catch (error) {
+                console.error('Failed to initialize Admin WebSocket:', error);
+                this.attemptReconnect();
+            }
+        },
+        
+        cleanupWebSocket() {
+            if (this.ws) {
+                this.ws.close();
+                this.ws = null;
+            }
+        },
+        
+        attemptReconnect() {
+            if (this.reconnectAttempts < this.maxReconnectAttempts && this.isLoggedIn) {
+                this.reconnectAttempts++;
+                console.log(`Admin attempting to reconnect... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+                
+                setTimeout(() => {
+                    this.initWebSocket();
+                }, 3000);
+            } else {
+                console.error('Admin max reconnection attempts reached');
             }
         },
         

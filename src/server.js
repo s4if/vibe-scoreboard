@@ -10,6 +10,7 @@ const db = new Database('livescore.db');
 db.exec(`
   DROP TABLE IF EXISTS players;
   DROP TABLE IF EXISTS competitions;
+  DROP TABLE IF EXISTS competition_players;
   
   CREATE TABLE competitions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -19,11 +20,19 @@ db.exec(`
   
   CREATE TABLE players (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    competition_id INTEGER NOT NULL,
     name TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+  
+  CREATE TABLE competition_players (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    competition_id INTEGER NOT NULL,
+    player_id INTEGER NOT NULL,
     score INTEGER DEFAULT 0,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (competition_id) REFERENCES competitions (id) ON DELETE CASCADE
+    FOREIGN KEY (competition_id) REFERENCES competitions (id) ON DELETE CASCADE,
+    FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE,
+    UNIQUE(competition_id, player_id)
   );
 `);
 
@@ -45,62 +54,89 @@ if (compCount.count === 0) {
     insertComp.run(compName);
   }
   
-  // Insert sample players for each competition
-  const insertPlayer = db.prepare('INSERT INTO players (competition_id, name, score) VALUES (?, ?, ?)');
+  // Insert sample players
+  const insertPlayer = db.prepare('INSERT INTO players (name) VALUES (?)');
+  const insertCompetitionPlayer = db.prepare('INSERT INTO competition_players (competition_id, player_id, score) VALUES (?, ?, ?)');
   
-  // Chess Tournament players
-  insertPlayer.run(1, 'Magnus Carlsen', 2850);
-  insertPlayer.run(1, 'Hikaru Nakamura', 2780);
-  insertPlayer.run(1, 'Fabiano Caruana', 2760);
-  insertPlayer.run(1, 'Ding Liren', 2740);
-  insertPlayer.run(1, 'Ian Nepomniachtchi', 2720);
-  insertPlayer.run(1, 'Alireza Firouja', 2700);
-  insertPlayer.run(1, 'Levon Aronian', 2680);
+  // Insert players
+  const players = [
+    'Magnus Carlsen', 'Hikaru Nakamura', 'Fabiano Caruana', 'Ding Liren', 'Ian Nepomniachtchi',
+    'Alireza Firouja', 'Levon Aronian', 'LeBron James', 'Stephen Curry', 'Kevin Durant',
+    'Giannis Antetokounmpo', 'Luka Dončić', 'Jayson Tatum', 'Nikola Jokić', 'Lionel Messi',
+    'Cristiano Ronaldo', 'Kylian Mbappé', 'Erling Haaland', 'Kevin De Bruyne', 'Robert Lewandowski',
+    'Mohamed Salah', 'Novak Djokovic', 'Carlos Alcaraz', 'Daniil Medvedev', 'Stefanos Tsitsipas',
+    'Casper Ruud', 'Andrey Rublev', 'Holger Rune', 'Scottie Scheffler', 'Rory McIlroy',
+    'Jon Rahm', 'Brooks Koepka', 'Patrick Cantlay', 'Xander Schauffele', 'Justin Thomas',
+    'Michael Phelps', 'Caeleb Dressel', 'Adam Peaty', 'Katie Ledecky', 'Ryan Murphy',
+    'Sarah Sjöström', 'Dana Vollmer'
+  ];
   
-  // Basketball League players
-  insertPlayer.run(2, 'LeBron James', 95);
-  insertPlayer.run(2, 'Stephen Curry', 92);
-  insertPlayer.run(2, 'Kevin Durant', 91);
-  insertPlayer.run(2, 'Giannis Antetokounmpo', 90);
-  insertPlayer.run(2, 'Luka Dončić', 89);
-  insertPlayer.run(2, 'Jayson Tatum', 87);
-  insertPlayer.run(2, 'Nikola Jokić', 88);
+  const playerIds = [];
+  for (const playerName of players) {
+    const result = insertPlayer.run(playerName);
+    playerIds.push(result.lastInsertRowid);
+  }
   
-  // Soccer Championship players
-  insertPlayer.run(3, 'Lionel Messi', 98);
-  insertPlayer.run(3, 'Cristiano Ronaldo', 96);
-  insertPlayer.run(3, 'Kylian Mbappé', 94);
-  insertPlayer.run(3, 'Erling Haaland', 93);
-  insertPlayer.run(3, 'Kevin De Bruyne', 91);
-  insertPlayer.run(3, 'Robert Lewandowski', 89);
-  insertPlayer.run(3, 'Mohamed Salah', 88);
+  // Add players to competitions with scores
+  // Chess Tournament (Competition ID: 1)
+  insertCompetitionPlayer.run(1, playerIds[0], 2850); // Magnus Carlsen
+  insertCompetitionPlayer.run(1, playerIds[1], 2780); // Hikaru Nakamura
+  insertCompetitionPlayer.run(1, playerIds[2], 2760); // Fabiano Caruana
+  insertCompetitionPlayer.run(1, playerIds[3], 2740); // Ding Liren
+  insertCompetitionPlayer.run(1, playerIds[4], 2720); // Ian Nepomniachtchi
+  insertCompetitionPlayer.run(1, playerIds[5], 2700); // Alireza Firouja
+  insertCompetitionPlayer.run(1, playerIds[6], 2680); // Levon Aronian
   
-  // Tennis Open players
-  insertPlayer.run(4, 'Novak Djokovic', 99);
-  insertPlayer.run(4, 'Carlos Alcaraz', 95);
-  insertPlayer.run(4, 'Daniil Medvedev', 92);
-  insertPlayer.run(4, 'Stefanos Tsitsipas', 89);
-  insertPlayer.run(4, 'Casper Ruud', 87);
-  insertPlayer.run(4, 'Andrey Rublev', 85);
-  insertPlayer.run(4, 'Holger Rune', 84);
+  // Basketball League (Competition ID: 2)
+  insertCompetitionPlayer.run(2, playerIds[7], 95);  // LeBron James
+  insertCompetitionPlayer.run(2, playerIds[8], 92);  // Stephen Curry
+  insertCompetitionPlayer.run(2, playerIds[9], 91);  // Kevin Durant
+  insertCompetitionPlayer.run(2, playerIds[10], 90); // Giannis Antetokounmpo
+  insertCompetitionPlayer.run(2, playerIds[11], 89); // Luka Dončić
+  insertCompetitionPlayer.run(2, playerIds[12], 87); // Jayson Tatum
+  insertCompetitionPlayer.run(2, playerIds[13], 88); // Nikola Jokić
   
-  // Golf Masters players
-  insertPlayer.run(5, 'Scottie Scheffler', 85);
-  insertPlayer.run(5, 'Rory McIlroy', 83);
-  insertPlayer.run(5, 'Jon Rahm', 82);
-  insertPlayer.run(5, 'Brooks Koepka', 81);
-  insertPlayer.run(5, 'Patrick Cantlay', 80);
-  insertPlayer.run(5, 'Xander Schauffele', 79);
-  insertPlayer.run(5, 'Justin Thomas', 78);
+  // Soccer Championship (Competition ID: 3)
+  insertCompetitionPlayer.run(3, playerIds[14], 98); // Lionel Messi
+  insertCompetitionPlayer.run(3, playerIds[15], 96); // Cristiano Ronaldo
+  insertCompetitionPlayer.run(3, playerIds[16], 94); // Kylian Mbappé
+  insertCompetitionPlayer.run(3, playerIds[17], 93); // Erling Haaland
+  insertCompetitionPlayer.run(3, playerIds[18], 91); // Kevin De Bruyne
+  insertCompetitionPlayer.run(3, playerIds[19], 89); // Robert Lewandowski
+  insertCompetitionPlayer.run(3, playerIds[20], 88); // Mohamed Salah
   
-  // Swimming Competition players
-  insertPlayer.run(6, 'Michael Phelps', 100);
-  insertPlayer.run(6, 'Caeleb Dressel', 98);
-  insertPlayer.run(6, 'Adam Peaty', 96);
-  insertPlayer.run(6, 'Katie Ledecky', 97);
-  insertPlayer.run(6, 'Ryan Murphy', 94);
-  insertPlayer.run(6, 'Sarah Sjöström', 95);
-  insertPlayer.run(6, 'Dana Vollmer', 92);
+  // Tennis Open (Competition ID: 4)
+  insertCompetitionPlayer.run(4, playerIds[21], 99); // Novak Djokovic
+  insertCompetitionPlayer.run(4, playerIds[22], 95); // Carlos Alcaraz
+  insertCompetitionPlayer.run(4, playerIds[23], 92); // Daniil Medvedev
+  insertCompetitionPlayer.run(4, playerIds[24], 89); // Stefanos Tsitsipas
+  insertCompetitionPlayer.run(4, playerIds[25], 87); // Casper Ruud
+  insertCompetitionPlayer.run(4, playerIds[26], 85); // Andrey Rublev
+  insertCompetitionPlayer.run(4, playerIds[27], 84); // Holger Rune
+  
+  // Golf Masters (Competition ID: 5)
+  insertCompetitionPlayer.run(5, playerIds[28], 85); // Scottie Scheffler
+  insertCompetitionPlayer.run(5, playerIds[29], 83); // Rory McIlroy
+  insertCompetitionPlayer.run(5, playerIds[30], 82); // Jon Rahm
+  insertCompetitionPlayer.run(5, playerIds[31], 81); // Brooks Koepka
+  insertCompetitionPlayer.run(5, playerIds[32], 80); // Patrick Cantlay
+  insertCompetitionPlayer.run(5, playerIds[33], 79); // Xander Schauffele
+  insertCompetitionPlayer.run(5, playerIds[34], 78); // Justin Thomas
+  
+  // Swimming Competition (Competition ID: 6)
+  insertCompetitionPlayer.run(6, playerIds[35], 100); // Michael Phelps
+  insertCompetitionPlayer.run(6, playerIds[36], 98);  // Caeleb Dressel
+  insertCompetitionPlayer.run(6, playerIds[37], 96);  // Adam Peaty
+  insertCompetitionPlayer.run(6, playerIds[38], 97);  // Katie Ledecky
+  insertCompetitionPlayer.run(6, playerIds[39], 94);  // Ryan Murphy
+  insertCompetitionPlayer.run(6, playerIds[40], 95);  // Sarah Sjöström
+  insertCompetitionPlayer.run(6, playerIds[41], 92);  // Dana Vollmer
+  
+  // Add some players to multiple competitions to demonstrate many-to-many relationship
+  insertCompetitionPlayer.run(2, playerIds[0], 2800); // Magnus Carlsen in Basketball
+  insertCompetitionPlayer.run(3, playerIds[7], 90);   // LeBron James in Soccer
+  insertCompetitionPlayer.run(1, playerIds[21], 2900); // Novak Djokovic in Chess
+  insertCompetitionPlayer.run(4, playerIds[14], 85);  // Lionel Messi in Tennis
 }
 
 // WebSocket connections storage
@@ -125,16 +161,17 @@ function basicAuth(req) {
 async function handleApiRoutes(req, url) {
   if (url.pathname === '/api/competitions') {
     if (req.method === 'GET') {
-      // Get competitions with their top 5 players
-      const competitions = db.query('SELECT * FROM competitions ORDER BY id').all();
+      // Get competitions with their top 5 players (only 4 competitions for live scoreboard)
+      const competitions = db.query('SELECT * FROM competitions ORDER BY id LIMIT 4').all();
       
       // Get top 5 players for each competition
       const competitionsWithPlayers = competitions.map(competition => {
         const players = db.query(`
-          SELECT id, name, score, updated_at 
-          FROM players 
-          WHERE competition_id = ? 
-          ORDER BY score DESC 
+          SELECT p.id, p.name, cp.score, cp.updated_at 
+          FROM players p
+          JOIN competition_players cp ON p.id = cp.player_id
+          WHERE cp.competition_id = ? 
+          ORDER BY cp.score DESC 
           LIMIT 5
         `).all(competition.id);
         
@@ -155,7 +192,7 @@ async function handleApiRoutes(req, url) {
       }
       
       const body = await req.json();
-      const updatePlayer = db.prepare('UPDATE players SET score = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?');
+      const updatePlayer = db.prepare('UPDATE competition_players SET score = ?, updated_at = CURRENT_TIMESTAMP WHERE player_id = ?');
       
       // Update player scores
       for (const player of body) {
@@ -163,13 +200,14 @@ async function handleApiRoutes(req, url) {
       }
       
       // Broadcast updates to all WebSocket clients
-      const updatedCompetitions = db.query('SELECT * FROM competitions ORDER BY id').all();
+      const updatedCompetitions = db.query('SELECT * FROM competitions ORDER BY id LIMIT 4').all();
       const competitionsWithPlayers = updatedCompetitions.map(competition => {
         const players = db.query(`
-          SELECT id, name, score, updated_at 
-          FROM players 
-          WHERE competition_id = ? 
-          ORDER BY score DESC 
+          SELECT p.id, p.name, cp.score, cp.updated_at 
+          FROM players p
+          JOIN competition_players cp ON p.id = cp.player_id
+          WHERE cp.competition_id = ? 
+          ORDER BY cp.score DESC 
           LIMIT 5
         `).all(competition.id);
         
@@ -191,15 +229,60 @@ async function handleApiRoutes(req, url) {
     }
   }
   
+  // Update competition name
+  if (url.pathname.startsWith('/api/competitions/') && req.method === 'PUT') {
+    if (!basicAuth(req)) {
+      return new Response('Unauthorized', { status: 401 });
+    }
+    
+    const competitionId = url.pathname.split('/').pop();
+    const body = await req.json();
+    const updateCompetition = db.prepare('UPDATE competitions SET name = ? WHERE id = ?');
+    
+    updateCompetition.run(body.name, competitionId);
+    
+    // Get the updated competition
+    const updatedCompetition = db.query('SELECT * FROM competitions WHERE id = ?').get(competitionId);
+    
+    // Broadcast updates to all WebSocket clients
+    const updatedCompetitions = db.query('SELECT * FROM competitions ORDER BY id LIMIT 4').all();
+    const competitionsWithPlayers = updatedCompetitions.map(competition => {
+      const players = db.query(`
+        SELECT p.id, p.name, cp.score, cp.updated_at 
+        FROM players p
+        JOIN competition_players cp ON p.id = cp.player_id
+        WHERE cp.competition_id = ? 
+        ORDER BY cp.score DESC 
+        LIMIT 5
+      `).all(competition.id);
+      
+      return {
+        ...competition,
+        players: players
+      };
+    });
+    
+    const message = JSON.stringify({ type: 'update', data: competitionsWithPlayers });
+    
+    for (const conn of connections) {
+      conn.send(message);
+    }
+    
+    return new Response(JSON.stringify(updatedCompetition), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+  
   // Get all players for a competition (for admin panel)
   if (url.pathname === '/api/players' && req.method === 'GET') {
     const competitionId = url.searchParams.get('competition_id');
     if (competitionId) {
       const players = db.query(`
-        SELECT id, name, score, updated_at 
-        FROM players 
-        WHERE competition_id = ? 
-        ORDER BY score DESC
+        SELECT p.id, p.name, cp.score, cp.updated_at 
+        FROM players p
+        JOIN competition_players cp ON p.id = cp.player_id
+        WHERE cp.competition_id = ? 
+        ORDER BY cp.score DESC
       `).all(competitionId);
       
       return new Response(JSON.stringify(players), {
@@ -215,14 +298,81 @@ async function handleApiRoutes(req, url) {
     }
     
     const body = await req.json();
-    const insertPlayer = db.prepare('INSERT INTO players (competition_id, name, score) VALUES (?, ?, ?)');
     
-    const result = insertPlayer.run(body.competition_id, body.name, body.score || 0);
+    // First insert the player if they don't exist
+    const existingPlayer = db.query('SELECT id FROM players WHERE name = ?').get(body.name);
+    let playerId;
     
-    // Get the newly created player
-    const newPlayer = db.query('SELECT * FROM players WHERE id = ?').get(result.lastInsertRowid);
+    if (existingPlayer) {
+      playerId = existingPlayer.id;
+    } else {
+      const insertPlayer = db.prepare('INSERT INTO players (name) VALUES (?)');
+      const result = insertPlayer.run(body.name);
+      playerId = result.lastInsertRowid;
+    }
+    
+    // Then add the player to the competition
+    const insertCompetitionPlayer = db.prepare('INSERT INTO competition_players (competition_id, player_id, score) VALUES (?, ?, ?)');
+    insertCompetitionPlayer.run(body.competition_id, playerId, body.score || 0);
+    
+    // Get the newly created competition player entry
+    const newPlayer = db.query(`
+      SELECT p.id, p.name, cp.score, cp.updated_at 
+      FROM players p
+      JOIN competition_players cp ON p.id = cp.player_id
+      WHERE cp.competition_id = ? AND cp.player_id = ?
+    `).get(body.competition_id, playerId);
     
     return new Response(JSON.stringify(newPlayer), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+  
+  // Update player
+  if (url.pathname.startsWith('/api/players/') && req.method === 'PUT') {
+    if (!basicAuth(req)) {
+      return new Response('Unauthorized', { status: 401 });
+    }
+    
+    const playerId = url.pathname.split('/').pop();
+    const body = await req.json();
+    const updatePlayer = db.prepare('UPDATE competition_players SET score = ?, updated_at = CURRENT_TIMESTAMP WHERE player_id = ?');
+    
+    updatePlayer.run(body.score, playerId);
+    
+    // Get the updated player
+    const updatedPlayer = db.query(`
+      SELECT p.id, p.name, cp.score, cp.updated_at 
+      FROM players p
+      JOIN competition_players cp ON p.id = cp.player_id
+      WHERE cp.player_id = ?
+    `).get(playerId);
+    
+    // Broadcast updates to all WebSocket clients
+    const updatedCompetitions = db.query('SELECT * FROM competitions ORDER BY id LIMIT 4').all();
+    const competitionsWithPlayers = updatedCompetitions.map(competition => {
+      const players = db.query(`
+        SELECT p.id, p.name, cp.score, cp.updated_at 
+        FROM players p
+        JOIN competition_players cp ON p.id = cp.player_id
+        WHERE cp.competition_id = ? 
+        ORDER BY cp.score DESC 
+        LIMIT 5
+      `).all(competition.id);
+      
+      return {
+        ...competition,
+        players: players
+      };
+    });
+    
+    const message = JSON.stringify({ type: 'update', data: competitionsWithPlayers });
+    
+    for (const conn of connections) {
+      conn.send(message);
+    }
+    
+    return new Response(JSON.stringify(updatedPlayer), {
       headers: { 'Content-Type': 'application/json' }
     });
   }
@@ -234,9 +384,9 @@ async function handleApiRoutes(req, url) {
     }
     
     const playerId = url.pathname.split('/').pop();
-    const deletePlayer = db.prepare('DELETE FROM players WHERE id = ?');
+    const deleteCompetitionPlayer = db.prepare('DELETE FROM competition_players WHERE player_id = ?');
     
-    deletePlayer.run(playerId);
+    deleteCompetitionPlayer.run(playerId);
     
     return new Response(JSON.stringify({ success: true }), {
       headers: { 'Content-Type': 'application/json' }
@@ -336,13 +486,14 @@ const server = serve({
       console.log('Client connected');
       
       // Send current data to new client with top 5 players
-      const competitions = db.query('SELECT * FROM competitions ORDER BY id').all();
+      const competitions = db.query('SELECT * FROM competitions ORDER BY id LIMIT 4').all();
       const competitionsWithPlayers = competitions.map(competition => {
         const players = db.query(`
-          SELECT id, name, score, updated_at 
-          FROM players 
-          WHERE competition_id = ? 
-          ORDER BY score DESC 
+          SELECT p.id, p.name, cp.score, cp.updated_at 
+          FROM players p
+          JOIN competition_players cp ON p.id = cp.player_id
+          WHERE cp.competition_id = ? 
+          ORDER BY cp.score DESC 
           LIMIT 5
         `).all(competition.id);
         
