@@ -323,6 +323,30 @@ async function handleApiRoutes(req, url) {
       WHERE cp.competition_id = ? AND cp.player_id = ?
     `).get(body.competition_id, playerId);
     
+    // Broadcast updates to all WebSocket clients
+    const updatedCompetitions = db.query('SELECT * FROM competitions ORDER BY id LIMIT 4').all();
+    const competitionsWithPlayers = updatedCompetitions.map(competition => {
+      const players = db.query(`
+        SELECT p.id, p.name, cp.score, cp.updated_at 
+        FROM players p
+        JOIN competition_players cp ON p.id = cp.player_id
+        WHERE cp.competition_id = ? 
+        ORDER BY cp.score DESC 
+        LIMIT 5
+      `).all(competition.id);
+      
+      return {
+        ...competition,
+        players: players
+      };
+    });
+    
+    const message = JSON.stringify({ type: 'update', data: competitionsWithPlayers });
+    
+    for (const conn of connections) {
+      conn.send(message);
+    }
+    
     return new Response(JSON.stringify(newPlayer), {
       headers: { 'Content-Type': 'application/json' }
     });
@@ -377,8 +401,8 @@ async function handleApiRoutes(req, url) {
     });
   }
   
-  // Delete player
-  if (url.pathname.startsWith('/api/players/') && req.method === 'DELETE') {
+  // Delete player from competition
+  if (url.pathname.startsWith('/api/players/') && req.method === 'DELETE' && !url.pathname.includes('/delete')) {
     if (!basicAuth(req)) {
       return new Response('Unauthorized', { status: 401 });
     }
@@ -389,6 +413,147 @@ async function handleApiRoutes(req, url) {
     deleteCompetitionPlayer.run(playerId);
     
     return new Response(JSON.stringify({ success: true }), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+  
+  // Get all players for CRUD management
+  if (url.pathname === '/api/players/all' && req.method === 'GET') {
+    if (!basicAuth(req)) {
+      return new Response('Unauthorized', { status: 401 });
+    }
+    
+    const players = db.query('SELECT * FROM players ORDER BY name').all();
+    
+    return new Response(JSON.stringify(players), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+  
+  // Create new player (global players table)
+  if (url.pathname === '/api/players/create' && req.method === 'POST') {
+    if (!basicAuth(req)) {
+      return new Response('Unauthorized', { status: 401 });
+    }
+    
+    const body = await req.json();
+    
+    // Check if player already exists
+    const existingPlayer = db.query('SELECT id FROM players WHERE name = ?').get(body.name);
+    if (existingPlayer) {
+      return new Response(JSON.stringify({ error: 'Player already exists' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    const insertPlayer = db.prepare('INSERT INTO players (name) VALUES (?)');
+    const result = insertPlayer.run(body.name);
+    
+    const newPlayer = db.query('SELECT * FROM players WHERE id = ?').get(result.lastInsertRowid);
+    
+    return new Response(JSON.stringify(newPlayer), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+  
+  // Update player name (global players table)
+  if (url.pathname.startsWith('/api/players/') && url.pathname.endsWith('/update') && req.method === 'PUT') {
+    if (!basicAuth(req)) {
+      return new Response('Unauthorized', { status: 401 });
+    }
+    
+    const playerId = url.pathname.split('/')[3]; // Get the ID before /update
+    const body = await req.json();
+    
+    // Check if name already exists for another player
+    const existingPlayer = db.query('SELECT id FROM players WHERE name = ? AND id != ?').get(body.name, playerId);
+    if (existingPlayer) {
+      return new Response(JSON.stringify({ error: 'Player name already exists' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    const updatePlayer = db.prepare('UPDATE players SET name = ? WHERE id = ?');
+    updatePlayer.run(body.name, playerId);
+    
+    const updatedPlayer = db.query('SELECT * FROM players WHERE id = ?').get(playerId);
+    
+    return new Response(JSON.stringify(updatedPlayer), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+  
+  // Delete player completely (from players table)
+  if (url.pathname.startsWith('/api/players/') && url.pathname.endsWith('/delete') && req.method === 'DELETE') {
+    if (!basicAuth(req)) {
+      return new Response('Unauthorized', { status: 401 });
+    }
+    
+    const playerId = url.pathname.split('/')[3]; // Get the ID before /delete
+    
+    // First remove from competition_players
+    const deleteCompetitionPlayer = db.prepare('DELETE FROM competition_players WHERE player_id = ?');
+    deleteCompetitionPlayer.run(playerId);
+    
+    // Then remove from players table
+    const deletePlayer = db.prepare('DELETE FROM players WHERE id = ?');
+    deletePlayer.run(playerId);
+    
+    // Broadcast updates to all WebSocket clients
+    const updatedCompetitions = db.query('SELECT * FROM competitions ORDER BY id LIMIT 4').all();
+    const competitionsWithPlayers = updatedCompetitions.map(competition => {
+      const players = db.query(`
+        SELECT p.id, p.name, cp.score, cp.updated_at 
+        FROM players p
+        JOIN competition_players cp ON p.id = cp.player_id
+        WHERE cp.competition_id = ? 
+        ORDER BY cp.score DESC 
+        LIMIT 5
+      `).all(competition.id);
+      
+      return {
+        ...competition,
+        players: players
+      };
+    });
+    
+    const message = JSON.stringify({ type: 'update', data: competitionsWithPlayers });
+    
+    for (const conn of connections) {
+      conn.send(message);
+    }
+    
+    return new Response(JSON.stringify({ success: true }), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+  
+  // Get available players not in a specific competition
+  if (url.pathname === '/api/players/available' && req.method === 'GET') {
+    if (!basicAuth(req)) {
+      return new Response('Unauthorized', { status: 401 });
+    }
+    
+    const competitionId = url.searchParams.get('competition_id');
+    if (!competitionId) {
+      return new Response(JSON.stringify({ error: 'competition_id is required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    const availablePlayers = db.query(`
+      SELECT p.* FROM players p
+      WHERE p.id NOT IN (
+        SELECT cp.player_id FROM competition_players cp 
+        WHERE cp.competition_id = ?
+      )
+      ORDER BY p.name
+    `).all(competitionId);
+    
+    return new Response(JSON.stringify(availablePlayers), {
       headers: { 'Content-Type': 'application/json' }
     });
   }
@@ -466,6 +631,11 @@ const server = serve({
     if (url.pathname === '/admin.html') {
       const response = await serveStaticFile('admin.html');
       return response || new Response('Admin page not found', { status: 404 });
+    }
+    
+    if (url.pathname === '/players.html') {
+      const response = await serveStaticFile('players.html');
+      return response || new Response('Players page not found', { status: 404 });
     }
     
     const staticResponse = await serveStaticFile(url.pathname);

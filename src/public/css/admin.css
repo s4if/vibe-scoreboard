@@ -1,5 +1,51 @@
 /* Admin Panel Specific Styles */
 
+/* Navbar Styles */
+.navbar {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 15px 25px;
+    margin-bottom: 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.nav-brand h1 {
+    color: #ecf0f1;
+    font-size: 1.5em;
+    font-weight: 600;
+    margin: 0;
+}
+
+.nav-menu {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.nav-link {
+    color: #bdc3c7;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.nav-link:hover {
+    color: #ecf0f1;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.nav-link.active {
+    color: #3498db;
+    background: rgba(52, 152, 219, 0.2);
+}
+
 /* Global Admin Styles */
 * {
     margin: 0;
@@ -600,4 +646,142 @@ body {
     .modal-footer {
         padding: 20px;
     }
+}
+
+/* Players Page Specific Styles */
+.badge {
+    background: rgba(52, 152, 219, 0.3);
+    color: #3498db;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: 600;
+}
+
+.warning {
+    color: #e74c3c;
+    font-weight: 600;
+}
+
+.message-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    z-index: 10000;
+    animation: slideIn 0.3s ease-out;
+}
+
+.message-toast.success {
+    background: #27ae60;
+}
+
+.message-toast.error {
+    background: #e74c3c;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Player Select Styles */
+.player-select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #ecf0f1;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.player-select option {
+    background: #2c3e50;
+    color: #ecf0f1;
+}
+
+.loading-indicator {
+    text-align: center;
+    color: #3498db;
+    font-style: italic;
+    padding: 10px;
+}
+
+.no-players-message {
+    text-align: center;
+    color: #e74c3c;
+    padding: 10px;
+}
+
+.no-players-message a {
+    color: #3498db;
+    text-decoration: underline;
+}
+
+.no-players-message a:hover {
+    color: #2980b9;
+}
+
+/* Competition Name Editing */
+.competition-title {
+    display: flex;
+    align-items: center;
+    flex: 1;
+}
+
+.competition-title h3 {
+    margin: 0;
+    color: #ecf0f1;
+    font-size: 1.3em;
+    font-weight: 600;
+}
+
+.competition-name-input {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    color: #ecf0f1;
+    font-size: 1.1em;
+    font-weight: 600;
+    padding: 4px 8px;
+    width: 100%;
+    outline: none;
+}
+
+.competition-name-input:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.3);
+}
+
+.competition-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.edit-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #ecf0f1;
+}
+
+.btn-outline:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.5);
 }

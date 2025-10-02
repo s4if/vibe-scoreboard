@@ -51,13 +51,17 @@
 
         <!-- Admin Panel -->
         <div v-else class="admin-container">
-            <div class="admin-header">
-                <h1>Admin Panel</h1>
-                <div class="admin-actions">
-                    <button @click="logout" class="btn btn-secondary">Logout</button>
-                    <a href="/" class="btn btn-outline">View Scoreboard</a>
+            <nav class="navbar">
+                <div class="nav-brand">
+                    <h1>Live Scoreboard Admin</h1>
                 </div>
-            </div>
+                <div class="nav-menu">
+                    <a href="/admin.html" class="nav-link active">Competitions</a>
+                    <a href="/players.html" class="nav-link">Players</a>
+                    <a href="/" class="nav-link">Scoreboard</a>
+                    <button @click="logout" class="btn btn-secondary">Logout</button>
+                </div>
+            </nav>
             
             <div class="admin-status">
                 <div class="last-updated">
@@ -74,8 +78,45 @@
                         class="admin-competition-card"
                     >
                         <div class="card-header">
-                            <h3>{{ competition.name }}</h3>
-                            <span class="competition-id">#{{ competition.id }}</span>
+                            <div class="competition-title">
+                                <h3 v-if="!editingCompetition || editingCompetition.id !== competition.id">{{ competition.name }}</h3>
+                                <input 
+                                    v-else
+                                    type="text" 
+                                    v-model="editingCompetition.name" 
+                                    class="competition-name-input"
+                                    @keyup.enter="saveCompetitionName"
+                                    @keyup.escape="cancelEditCompetition"
+                                    ref="competitionNameInput"
+                                >
+                            </div>
+                            <div class="competition-actions">
+                                <span class="competition-id">#{{ competition.id }}</span>
+                                <button 
+                                    v-if="!editingCompetition || editingCompetition.id !== competition.id"
+                                    @click="startEditCompetition(competition)" 
+                                    class="btn btn-small btn-outline"
+                                    title="Edit competition name"
+                                >
+                                    ✏️
+                                </button>
+                                <div v-else class="edit-actions">
+                                    <button 
+                                        @click="saveCompetitionName" 
+                                        class="btn btn-small btn-primary"
+                                        title="Save"
+                                    >
+                                        ✓
+                                    </button>
+                                    <button 
+                                        @click="cancelEditCompetition" 
+                                        class="btn btn-small btn-secondary"
+                                        title="Cancel"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                         
                         <div class="card-content">
@@ -191,18 +232,32 @@
         <div v-if="showAddPlayerModal" class="modal-overlay" @click="closeAddPlayerModal">
             <div class="modal-content" @click.stop>
                 <div class="modal-header">
-                    <h3>Add New Player</h3>
+                    <h3>Add Player to Competition</h3>
                     <button @click="closeAddPlayerModal" class="modal-close">×</button>
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
-                        <label for="new-player-name">Player Name:</label>
-                        <input 
-                            id="new-player-name"
-                            type="text" 
-                            v-model="newPlayer.name" 
-                            placeholder="Enter player name"
+                        <label for="available-players">Select Player:</label>
+                        <select 
+                            id="available-players"
+                            v-model="selectedPlayerId"
+                            class="player-select"
                         >
+                            <option value="">Choose a player...</option>
+                            <option 
+                                v-for="player in availablePlayers" 
+                                :key="player.id" 
+                                :value="player.id"
+                            >
+                                {{ player.name }}
+                            </option>
+                        </select>
+                        <div v-if="loadingAvailablePlayers" class="loading-indicator">
+                            Loading available players...
+                        </div>
+                        <div v-if="!loadingAvailablePlayers && availablePlayers.length === 0" class="no-players-message">
+                            No available players. <a href="/players.html" target="_blank">Create new players</a>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="new-player-score">Initial Score:</label>
@@ -218,7 +273,9 @@
                 </div>
                 <div class="modal-footer">
                     <button @click="closeAddPlayerModal" class="btn btn-secondary">Cancel</button>
-                    <button @click="addPlayer" class="btn btn-primary">Add Player</button>
+                    <button @click="addExistingPlayer" class="btn btn-primary" :disabled="!selectedPlayerId || loadingAvailablePlayers">
+                        Add Player
+                    </button>
                 </div>
             </div>
         </div>
