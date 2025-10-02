@@ -234,6 +234,34 @@ body {
     align-items: center;
 }
 
+.admin-status {
+    background: rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 12px 30px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.last-updated {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9em;
+    color: #bdc3c7;
+}
+
+.status-label {
+    font-weight: 600;
+    color: #95a5a6;
+}
+
+.status-value {
+    color: #3498db;
+    font-weight: 500;
+    font-family: 'Courier New', monospace;
+}
+
 /* Admin Content */
 .admin-content {
     flex: 1;

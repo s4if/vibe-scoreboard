@@ -9,6 +9,7 @@ createApp({
             loginError: '',
             saveMessage: '',
             saveSuccess: false,
+            lastUpdated: 'Never',
             loginForm: {
                 username: '',
                 password: ''
@@ -57,6 +58,7 @@ createApp({
                 if (response.ok) {
                     this.isLoggedIn = true;
                     this.loginForm = { username: '', password: '' };
+                    this.lastUpdated = new Date().toLocaleTimeString();
                     await this.fetchCompetitions();
                     this.initWebSocket();
                 } else {
@@ -78,6 +80,7 @@ createApp({
             this.originalPlayers = {};
             this.saveMessage = '';
             this.loginError = '';
+            this.lastUpdated = 'Never';
             this.showAddPlayerModal = false;
             this.showEditPlayerModal = false;
             this.newPlayer = { competition_id: null, name: '', score: 0 };
@@ -110,6 +113,7 @@ createApp({
                     if (message.type === 'init' || message.type === 'update') {
                         // Refresh competitions and players data
                         this.competitions = message.data;
+                        this.lastUpdated = new Date().toLocaleTimeString();
                         
                         // Fetch updated players for each competition
                         for (const competition of this.competitions) {
@@ -165,6 +169,7 @@ createApp({
                 if (response.ok) {
                     const data = await response.json();
                     this.competitions = data;
+                    this.lastUpdated = new Date().toLocaleTimeString();
                     
                     // Fetch all players for each competition
                     for (const competition of this.competitions) {
@@ -265,6 +270,7 @@ createApp({
                 
                 if (response.ok) {
                     await this.fetchPlayersForCompetition(this.editingPlayer.competition_id);
+                    this.lastUpdated = new Date().toLocaleTimeString();
                     this.closeEditPlayerModal();
                     this.saveMessage = 'Player updated successfully!';
                     this.saveSuccess = true;
@@ -299,6 +305,7 @@ createApp({
                 
                 if (response.ok) {
                     await this.fetchPlayersForCompetition(this.newPlayer.competition_id);
+                    this.lastUpdated = new Date().toLocaleTimeString();
                     this.closeAddPlayerModal();
                     this.saveMessage = 'Player added successfully!';
                     this.saveSuccess = true;
@@ -339,6 +346,7 @@ createApp({
                         }
                     }
                     
+                    this.lastUpdated = new Date().toLocaleTimeString();
                     this.saveMessage = 'Player removed successfully!';
                     this.saveSuccess = true;
                     setTimeout(() => { this.saveMessage = ''; }, 3000);
@@ -376,6 +384,7 @@ createApp({
                 });
                 
                 if (response.ok) {
+                    this.lastUpdated = new Date().toLocaleTimeString();
                     this.saveMessage = 'Changes saved successfully!';
                     this.saveSuccess = true;
                     
