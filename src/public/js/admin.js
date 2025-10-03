@@ -27,6 +27,9 @@ createApp({
             availablePlayers: [],
             selectedPlayerId: null,
             loadingAvailablePlayers: false,
+            playerSearchQuery: '',
+            filteredPlayers: [],
+            showPlayerDropdown: false,
             editingPlayer: {
                 id: null,
                 name: '',
@@ -41,10 +44,12 @@ createApp({
     },
     mounted() {
         this.checkAuth();
+        this.addClickOutsideListener();
     },
     
     beforeUnmount() {
         this.cleanupWebSocket();
+        this.removeClickOutsideListener();
     },
     methods: {
         async login() {
@@ -243,6 +248,9 @@ createApp({
             this.availablePlayers = [];
             this.selectedPlayerId = null;
             this.loadingAvailablePlayers = false;
+            this.playerSearchQuery = '';
+            this.filteredPlayers = [];
+            this.showPlayerDropdown = false;
         },
         
         showEditPlayer(player) {
@@ -309,13 +317,16 @@ createApp({
                 
                 if (response.ok) {
                     this.availablePlayers = await response.json();
+                    this.filteredPlayers = [...this.availablePlayers];
                 } else {
                     console.error('Failed to fetch available players');
                     this.availablePlayers = [];
+                    this.filteredPlayers = [];
                 }
             } catch (error) {
                 console.error('Error fetching available players:', error);
                 this.availablePlayers = [];
+                this.filteredPlayers = [];
             }
         },
         
@@ -511,6 +522,55 @@ createApp({
         
         cancelEditCompetition() {
             this.editingCompetition = null;
+        },
+        
+        filterPlayers() {
+            if (!this.playerSearchQuery.trim()) {
+                this.filteredPlayers = [...this.availablePlayers];
+            } else {
+                const query = this.playerSearchQuery.toLowerCase();
+                this.filteredPlayers = this.availablePlayers.filter(player =>
+                    player.name.toLowerCase().includes(query)
+                );
+            }
+            this.showPlayerDropdown = true;
+        },
+        
+        selectPlayer(player) {
+            this.selectedPlayerId = player.id;
+            this.playerSearchQuery = player.name;
+            this.showPlayerDropdown = false;
+        },
+        
+        handleSearchEnter() {
+            if (this.filteredPlayers.length === 1) {
+                // If only one player matches, select it automatically
+                this.selectPlayer(this.filteredPlayers[0]);
+            } else if (this.selectedPlayerId && this.playerSearchQuery.trim()) {
+                // If a player is already selected and search has text, try to add the player
+                this.addExistingPlayer();
+            }
+        },
+        
+        getSelectedPlayerName() {
+            if (!this.selectedPlayerId) return '';
+            const player = this.availablePlayers.find(p => p.id === this.selectedPlayerId);
+            return player ? player.name : '';
+        },
+        
+        addClickOutsideListener() {
+            document.addEventListener('click', this.handleClickOutside);
+        },
+        
+        removeClickOutsideListener() {
+            document.removeEventListener('click', this.handleClickOutside);
+        },
+        
+        handleClickOutside(event) {
+            const searchContainer = event.target.closest('.player-search-container');
+            if (!searchContainer && this.showPlayerDropdown) {
+                this.showPlayerDropdown = false;
+            }
         },
         
         formatTime(timestamp) {

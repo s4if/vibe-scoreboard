@@ -7,38 +7,43 @@ import { seedDatabase } from "../database/seeds/index.js";
 // Initialize SQLite database
 const db = new Database("livescore.db");
 
-// Drop existing tables and create new structure
-db.run(`
-  DROP TABLE IF EXISTS players;
-  DROP TABLE IF EXISTS competitions;
-  DROP TABLE IF EXISTS competition_players;
+// Check if tables exist, only create if they don't
+const tables = db.query("SELECT name FROM sqlite_master WHERE type='table'").all();
+const tableNames = tables.map(t => t.name);
 
-  CREATE TABLE competitions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-  );
+if (!tableNames.includes('competitions') || !tableNames.includes('players') || !tableNames.includes('competition_players')) {
+  console.log("Creating database tables...");
+  
+  db.run(`
+    CREATE TABLE IF NOT EXISTS competitions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
 
-  CREATE TABLE players (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-  );
+    CREATE TABLE IF NOT EXISTS players (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
 
-  CREATE TABLE competition_players (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    competition_id INTEGER NOT NULL,
-    player_id INTEGER NOT NULL,
-    score INTEGER DEFAULT 0,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (competition_id) REFERENCES competitions (id) ON DELETE CASCADE,
-    FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE,
-    UNIQUE(competition_id, player_id)
-  );
-`);
+    CREATE TABLE IF NOT EXISTS competition_players (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      competition_id INTEGER NOT NULL,
+      player_id INTEGER NOT NULL,
+      score INTEGER DEFAULT 0,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (competition_id) REFERENCES competitions (id) ON DELETE CASCADE,
+      FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE,
+      UNIQUE(competition_id, player_id)
+    );
+  `);
 
-// Seed database with sample data
-seedDatabase(db);
+  // Seed database with sample data only if tables were just created
+  seedDatabase(db);
+} else {
+  console.log("Database tables already exist. Skipping creation...");
+}
 
 // WebSocket connections storage
 const connections = new Set();

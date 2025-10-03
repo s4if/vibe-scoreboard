@@ -78,6 +78,13 @@
                     </div>
                 </div>
 
+                <div
+                    v-if="saveMessage"
+                    :class="['save-message', saveSuccess ? 'success' : 'error']"
+                >
+                    {{ saveMessage }}
+                </div>
+
                 <div class="admin-content">
                     <div class="competitions-grid">
                         <div
@@ -197,31 +204,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <div class="admin-actions-bottom">
-                        <button
-                            @click="saveChanges"
-                            class="btn btn-primary btn-large"
-                            :disabled="isSaving"
-                        >
-                            {{ isSaving ? 'Saving...' : 'Save All Changes' }}
-                        </button>
-
-                        <button
-                            @click="resetChanges"
-                            class="btn btn-secondary"
-                            :disabled="isSaving"
-                        >
-                            Reset Changes
-                        </button>
-                    </div>
-
-                    <div
-                        v-if="saveMessage"
-                        :class="['save-message', saveSuccess ? 'success' : 'error']"
-                    >
-                        {{ saveMessage }}
-                    </div>
                 </div>
             </div>
 
@@ -249,6 +231,7 @@
                                 type="text"
                                 v-model="editingPlayer.name"
                                 placeholder="Enter player name"
+                                @keyup.enter="updatePlayer"
                             />
                         </div>
                         <div class="form-group">
@@ -259,6 +242,7 @@
                                 v-model.number="editingPlayer.score"
                                 placeholder="Enter score"
                                 min="0"
+                                @keyup.enter="updatePlayer"
                             />
                         </div>
                     </div>
@@ -297,20 +281,38 @@
                             <label for="available-players"
                                 >Select Player:</label
                             >
-                            <select
-                                id="available-players"
-                                v-model="selectedPlayerId"
-                                class="player-select"
-                            >
-                                <option value="">Choose a player...</option>
-                                <option
-                                    v-for="player in availablePlayers"
-                                    :key="player.id"
-                                    :value="player.id"
+                            <div class="player-search-container">
+                                <input
+                                    id="available-players"
+                                    type="text"
+                                    v-model="playerSearchQuery"
+                                    @input="filterPlayers"
+                                    @focus="showPlayerDropdown = true"
+                                    @keyup.enter="handleSearchEnter"
+                                    placeholder="Search for a player..."
+                                    class="player-search-input"
+                                />
+                                <div
+                                    v-if="showPlayerDropdown && (filteredPlayers.length > 0 || playerSearchQuery)"
+                                    class="player-dropdown"
                                 >
-                                    {{ player.name }}
-                                </option>
-                            </select>
+                                    <div
+                                        v-for="player in filteredPlayers"
+                                        :key="player.id"
+                                        @click="selectPlayer(player)"
+                                        :class="['player-option', { 'selected': selectedPlayerId === player.id }]"
+                                    >
+                                        {{ player.name }}
+                                    </div>
+                                    <div
+                                        v-if="filteredPlayers.length === 0 && playerSearchQuery"
+                                        class="no-search-results"
+                                    >
+                                        No players found matching "{{
+                                        playerSearchQuery }}"
+                                    </div>
+                                </div>
+                            </div>
                             <div
                                 v-if="loadingAvailablePlayers"
                                 class="loading-indicator"
@@ -326,6 +328,12 @@
                                     >Create new players</a
                                 >
                             </div>
+                            <div
+                                v-if="selectedPlayerId"
+                                class="selected-player-info"
+                            >
+                                Selected: {{ getSelectedPlayerName() }}
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="new-player-score">Initial Score:</label>
@@ -336,6 +344,7 @@
                                 placeholder="Enter initial score"
                                 min="0"
                                 value="0"
+                                @keyup.enter="addExistingPlayer"
                             />
                         </div>
                     </div>

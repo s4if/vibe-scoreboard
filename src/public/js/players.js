@@ -74,7 +74,7 @@ createApp({
                     this.isLoggedIn = true;
                     this.loginForm = { username: '', password: '' };
                     await this.fetchData();
-                    localStorage.setItem('isPlayersLoggedIn', 'true');
+                    localStorage.setItem('isAdminLoggedIn', 'true');
                 } else {
                     this.loginError = 'Invalid username or password';
                 }
@@ -94,11 +94,11 @@ createApp({
             this.searchQuery = '';
             this.message = '';
             this.loginError = '';
-            localStorage.removeItem('isPlayersLoggedIn');
+            localStorage.removeItem('isAdminLoggedIn');
         },
         
         checkAuth() {
-            const isAuthenticated = localStorage.getItem('isPlayersLoggedIn');
+            const isAuthenticated = localStorage.getItem('isAdminLoggedIn');
             if (isAuthenticated === 'true') {
                 this.isLoggedIn = true;
                 this.fetchData();
