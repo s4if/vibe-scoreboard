@@ -120,7 +120,7 @@ waitForVue(() => {
     methods: {
         initWebSocket() {
             try {
-                this.ws = new WebSocket('ws://localhost:3000/ws');
+                this.ws = new WebSocket(`ws://${window.location.host}/ws`);
                 
                 this.ws.onopen = () => {
                     console.log('WebSocket connected');
