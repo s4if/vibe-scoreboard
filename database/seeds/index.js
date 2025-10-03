@@ -1,6 +1,7 @@
 import { seedCompetitions } from "./competitions.js";
 import { seedPlayers } from "./players.js";
 import { seedCompetitionPlayers } from "./competition-players.js";
+import { seedAdminUsers } from "./admin-users.js";
 
 export async function seedDatabase(db) {
   // Check if competitions table is empty
@@ -19,6 +20,9 @@ export async function seedDatabase(db) {
 
     // Seed competition-players relationships
     //seedCompetitionPlayers(db, playerIds);
+
+    // Seed admin users
+    seedAdminUsers(db);
 
     console.log("Database seeding completed successfully!");
   } else {

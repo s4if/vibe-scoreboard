@@ -11,7 +11,7 @@ const db = new Database("livescore.db");
 const tables = db.query("SELECT name FROM sqlite_master WHERE type='table'").all();
 const tableNames = tables.map(t => t.name);
 
-if (!tableNames.includes('competitions') || !tableNames.includes('players') || !tableNames.includes('competition_players')) {
+if (!tableNames.includes('competitions') || !tableNames.includes('players') || !tableNames.includes('competition_players') || !tableNames.includes('admin_users')) {
   console.log("Creating database tables...");
   
   db.run(`
@@ -36,6 +36,13 @@ if (!tableNames.includes('competitions') || !tableNames.includes('players') || !
       FOREIGN KEY (competition_id) REFERENCES competitions (id) ON DELETE CASCADE,
       FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE,
       UNIQUE(competition_id, player_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS admin_users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT NOT NULL UNIQUE,
+      password TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `);
 
@@ -111,8 +118,12 @@ function basicAuth(req) {
   );
   const [username, password] = credentials.split(":");
 
-  // Hardcoded credentials
-  return username === "admin" && password === "admin123";
+  // Check credentials against admin_users table
+  const adminUser = db
+    .query("SELECT * FROM admin_users WHERE username = ? AND password = ?")
+    .get(username, password);
+
+  return adminUser !== undefined;
 }
 
 // API routes
