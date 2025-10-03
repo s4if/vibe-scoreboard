@@ -120,7 +120,8 @@ waitForVue(() => {
     methods: {
         initWebSocket() {
             try {
-                this.ws = new WebSocket(`ws://${window.location.host}/ws`);
+                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                this.ws = new WebSocket(`${protocol}//${window.location.host}/ws`);
                 
                 this.ws.onopen = () => {
                     console.log('WebSocket connected');
